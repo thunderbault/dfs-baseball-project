@@ -1,10 +1,9 @@
 # dfs-baseball-project
 Daily Fantasy Baseball Project
 
-#Extract pricing and lineup data for DFS site for that day
+Requires download of contest .csv from Draftkings and Fanduel to function
 
-#Extract relevant statistics for these pitchers versus lineup and hitters versus pitcher if applicable
+Scrapes data of starting players in contest, creates scores based on statistics, uses algorithm to sort players and create optimal lineup within the salary and roster constraints
 
-#Run previous season and this season stats and vs pitcher career through algorithm
+At this time, must run Main then Daily Optimizer sequentially
 
-#optimize lineup using pricing data and algorithm enumeration of individual players constraining to lineup and salary

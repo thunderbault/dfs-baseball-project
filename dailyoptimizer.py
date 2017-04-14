@@ -11,7 +11,7 @@ start_time = time.time()
 
 home_stadium = {"LAA":"Angel Stadium of Anaheim", "SF":"AT&T Park", "StL":"Busch Stadium", "Ari":"Chase Field", "NYM":"Citi Field", "Phi":"Citizens Bank Park", 
 "Det":"Comerica Park", "Col":"Coors Field", "LAD":"Dodger Stadium", "Bos":"Fenway Park", "Tex":"Globe Life Park in Arlington", "Cin":"Great American Ball Park", 
-"KC":"Kauffman Stadium", "Mia":"Marlins Park", "Mil":"Miller Park", "Hou":"Minute Maid Park", "Wsh":"Nationals Park", 
+"KC":"Kauffman Stadium", "Mia":"Marlins Park", "Mil":"Miller Park", "Hou":"Minute Maid Park", "Was":"Nationals Park", 
 "Oak":"O.co Coliseum", "Bal":"Oriole Park at Camden Yards", "SD":"Petco Park", "Pit":"PNC Park", "Cle":"Progressive Field", "Tor":"Rogers Centre",
 "Sea":"Safeco Field", "Min":"Target Field", "TB":"Tropicana Field", "Atl": "Turner Field", "CWS": "U.S. Cellular Field", "ChC":"Wrigley Field", "NYY":"Yankee Stadium"}
 
@@ -744,12 +744,30 @@ def lineup_creator(batter_score_list, pitcher_score_list, salary_dictionary):
     while salary > 50000:
         for i,j in enumerate(deltas):
             if j == min(deltas):
-                index[i] += 1
+                print player_roster
+                print i
                 player = player_roster[i]
+                print player
                 player_roster.remove(player)
+                print player_roster
+                index[i] += 1
+                if i < 8:
+                    player = batter_score_list[position_index[i]][index[i]][0]
+                else:
+                    player = pitcher_score_list[index[i]][0]
                 while player in player_roster:
                     index[i] += 1
-                player_roster.insert(i, player_roster[i])
+                    print index
+                    if i < 8:
+                        player = batter_score_list[position_index[i]][index[i]][0]
+                    else:
+                        player = pitcher_score_list[index[i]][0]
+                player_roster.insert(i, player)
+                salary = sum([salary_dictionary[i] for i in player_roster])
+                deltas = [batter_score_list[position_index[i]][index[i]][1] - batter_score_list[position_index[i]][index[i]+1][1] for i in range(8)]
+                pitcher_deltas = [pitcher_score_list[index[i]][1] - pitcher_score_list[index[i]+1][1] for i in [8,9]]
+                for pitcher in pitcher_deltas:
+                    deltas.append(pitcher)
     final_score = 0
     final_score += catcher_score[player_roster[0]]
     final_score += first_basemen_score[player_roster[1]]

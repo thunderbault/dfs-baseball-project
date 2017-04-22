@@ -1,30 +1,18 @@
-#Complete baseball-reference scraper caller and SQL writer for data for daily optimizer
+#Complete baseball-reference scraper and SQL writer for data for daily optimizer
 #By Adam Thibault
 from BeautifulSoup import *
 import sqlite3
 import urllib
-import brscraper_newbr_afterross
-import brcommentscraper_newbr_afterross
+import brscraper
+import brcommentscraper
 import time 
 start_time = time.time()
 
-#tried to make some code to handle special characters (accents, etc.) Will return to this later.
 
-#from unidecode import unidecode
-#import unicodedata
-
-
-# def code_points(text):
-    # utf32 = text.encode('UTF-32LE')
-    # return struct.unpack('<{}I'.format(len(utf32) // 4), utf32)
-
-# def remove_accents(input_str):
-    # nfkd_form = unicodedata.normalize('NFKD', input_str)
-    # return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
-
-#scrape starters_website for baseball-reference playerid, handedness, and starting players
 def daily_starters(object):
-
+    '''
+    scrape starters_website for baseball-reference playerid, handedness, and starting players
+    '''
     call_starters_url = urllib.urlopen(object)
     starters_website = call_starters_url.read()	
     soup = BeautifulSoup(starters_website)
@@ -45,9 +33,10 @@ def daily_starters(object):
         else:
             starting_pitcher.append(player)
         
-#create url from player name and playerid for scraping baseball-reference based on current url called
-    
 def create_url(player_full_name, website, year, server_url="http://www.baseball-reference.com/"):
+    '''
+    create url from player name and playerid for scraping baseball-reference based on current url called
+    '''
     player_id = player_id_lookup[player_full_name]
     if website == "splits_url":
         if player_and_position[player_full_name][0] == 1: 
@@ -61,11 +50,11 @@ def create_url(player_full_name, website, year, server_url="http://www.baseball-
         bvp_url = "play-index/batter_vs_pitcher.cgi?batter="
         player_url = bvp_url + player_id
     return player_url
-
-#write to sql database, separate databases based on the website called and the stats desired
     
 def write_to_database(line, player_full_name, sql_table_name, year):
-    
+    '''
+    write to sql database, separate databases based on the website called and the stats desired
+    '''
     if not line:
         print "%s was skipped at if not data_table" %player_full_name
         skipped_players.append(player_full_name)
@@ -138,10 +127,11 @@ def write_to_database(line, player_full_name, sql_table_name, year):
     conn.commit()
     conn.close()               
                     
-#extract salary and position information from draftkings .csv downloaded locally daily                 
 def extract_dk_info(csv_from_draftkings):
+    '''
+    extract salary and position information from draftkings .csv downloaded locally daily 
+    '''
     import csv
-
     global player_and_position
     global player_and_salaries
     global player_team
@@ -198,7 +188,6 @@ def extract_dk_info(csv_from_draftkings):
                         dk_salary = row[3]
                         player_and_salaries[player_full_name] = dk_salary
                     player_and_position[player_full_name] = position.split('/')
-                    print teams
                     player_team[player_full_name] = row[5]
                     players_team= row[5]
                     the_home_team = teams[1]
@@ -238,7 +227,9 @@ def extract_dk_info(csv_from_draftkings):
                         count = count + 1
             else: continue
 def check_data(player_full_name, position, sql_table, year, line):
-
+    '''
+    check if data already exists, and pass over existing data
+    '''
         if position == 1:
             innings_pitched = None
             conn = sqlite3.connect('%s'%year + 'pitcher.sqlite')
@@ -271,7 +262,7 @@ def check_data(player_full_name, position, sql_table, year, line):
                     return True
                 else:
                     return False
-scraper = brscraper_newbr_afterross.BRScraper()      
+scraper = brscraper.BRScraper()      
 #websites correspond to: 7day/14/28/365, platoon LHB/RHB, home/away, batter vs pitcher           
 manually_entered_teams_to_skip = []
 websites = ["splits_url", "bvp_url"]
@@ -288,7 +279,7 @@ starting_players = []
 starting_pitcher = []
 player_id_lookup = {}
 player_lineup_spot = {}  
-starters_url = 'http://www.baseballpress.com/lineups'
+starters_url = 'http://www.baseballpress.com/lineups/2017-04-14'
 daily_starters(starters_url)
 csv_from_draftkings = 'DKSalaries.csv' 
 
@@ -299,6 +290,7 @@ extract_dk_info(csv_from_draftkings)
 for year in years:
     sql_tables = ["{}last365days".format(year), "{}last7days".format(year), "{}last14days".format(year), "{}last28days".format(year), "{}vsRHStarter".format(year), "{}vsLHStarter".format(year), "{}hmvis".format(year), "{}bvp".format(year)]
     for sql_table in sql_tables:
+        #loop through and erase each SQL table
         conn = sqlite3.connect('%s'%year + 'pitcher.sqlite')
         cur = conn.cursor()
         cur.execute('''DROP TABLE IF EXISTS '%s' '''%sql_table)
@@ -311,6 +303,8 @@ for year in years:
         conn.close()
     for player in player_full_names_list:
         for website in websites:
+            #construct correct URL and scrape all tables of interest cooresponding to the chosen website
+            # total = total stats, plato = platoon stats, hmvis = home/away stats
             splits_tables = ["total", "plato", "hmvis"]
             data_tables = []
             if website == "splits_url":    
@@ -321,7 +315,7 @@ for year in years:
                     player_id = player_id_lookup[player]
                 except:
                     continue
-                data_tables = brcommentscraper_newbr_afterross.brscraper_in_comments(create_url(player, website, year), table_ids = splits_tables)
+                data_tables = brcommentscraper.brscraper_in_comments(create_url(player, website, year), table_ids = splits_tables)
             if website == "bvp_url":
                 if player_and_position[player][0] == 1:
                     continue
@@ -333,6 +327,7 @@ for year in years:
                 data_tables[0][0]["ajax_result_table"] = [row for row in data_tables[0][0]["ajax_result_table"] if row["Name"].lower() == "%s"%opposing_team_pitcher[opposing_team[player]]]
                 data_tables[0][0]["ajax_result_table"].append("ajax_result_table")
             for data_table in data_tables:
+                #some websites have more than one data structure embedded in the data_tables data structure if more than one table called
                 for line in data_table[0][data_table[1]]:
                     sql_table_name = None
                     if data_table[1] is not "ajax_result_table":
@@ -421,6 +416,7 @@ for year in years:
                                     # break
                             # else:
                         try:
+                        #0.1 innings pitched means one of three outs was acheived, or 1/3 inning pitched
                             if ".1" in line["IP"]:
                                 line["IP"] = line["IP"].replace(".1", ".33")
                             if ".2" in line["IP"]:
@@ -437,7 +433,6 @@ for year in years:
                         else:
                             break
 
-print skipped_players
 end_time = time.time()
 print('Took %s seconds to calculate.' % (end_time - start_time))
 

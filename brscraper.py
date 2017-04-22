@@ -1,3 +1,6 @@
+#From https://github.com/andrewblim/br-scraper
+#Edited by Adam Thibault
+
 from bs4 import BeautifulSoup
 import urllib2
 

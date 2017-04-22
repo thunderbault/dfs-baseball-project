@@ -1,6 +1,6 @@
-
 #scrape baseball-reference comments for data tables
 #by Adam Thibault
+
 from bs4 import BeautifulSoup
 from bs4 import Comment
 import re
@@ -8,6 +8,11 @@ import urllib
 
 
 def brscraper_in_comments(resource, table_ids=None, server_url="http://www.baseball-reference.com/", table_found = False):
+    '''
+    scrape data from Baseball Reference 
+    since they updated website and commented
+    out tables I was scraping from
+    '''
     data = {}
     datas = []
     print server_url + resource
@@ -44,4 +49,5 @@ def brscraper_in_comments(resource, table_ids=None, server_url="http://www.baseb
                 datas.append(table_and_data)
     return datas
 
+#test
 #print brscraper_in_comments("players/split.fcgi?t=b&id=troutmi01&year=2016", table_ids = "total")
